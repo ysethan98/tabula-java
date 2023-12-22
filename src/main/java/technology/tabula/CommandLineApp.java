@@ -434,18 +434,6 @@ public class CommandLineApp {
             }
 
             if (verticalRulingPositions != null) {
-                // List<Float> absoluteRulingPositions;
-
-                // if (this.verticalRulingPositionsRelative) {
-                //     // convert relative to absolute
-                //     absoluteRulingPositions = new ArrayList<>(verticalRulingPositions.size());
-                //     for (float relative : this.verticalRulingPositions) {
-                //         float absolute = (float) (relative / 100.0 * page.getWidth());
-                //         absoluteRulingPositions.add(absolute);
-                //     }
-                // } else {
-                //     absoluteRulingPositions = this.verticalRulingPositions;
-                // }
                 List<Float> absoluteRulingPositions = getFloats(page);
                 return basicExtractor.extract(page, absoluteRulingPositions);
             }
