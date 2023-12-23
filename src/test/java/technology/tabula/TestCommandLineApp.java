@@ -7,34 +7,34 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.List;
 import java.util.Arrays;
+import java.io.StringWriter;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
-import static org.mockito.Mockito.mock;
 import org.junit.Before;
 
 public class TestCommandLineApp {
 
     private CommandLineApp app;
-    private Appendable mockOutput;
-    private CommandLine mockCmd;
+    private StringWriter stringWriter;
+    private CommandLine cmd;
 
     @Before
-    public void setUp() {
-        mockOutput = mock(Appendable.class);
-        mockCmd = mock(CommandLine.class);
-        try {
-            app = new CommandLineApp(mockOutput, mockCmd);
-        } catch (ParseException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+    public void setUp() throws ParseException {
+        stringWriter = new StringWriter();
+        Options options = CommandLineApp.buildOptions();
+        CommandLineParser parser = new DefaultParser();
+
+        String[] args = new String[]{"-f", "CSV", "path/to/singlefile.pdf"};
+        cmd = parser.parse(options, args);
+
+        app = new CommandLineApp(stringWriter, cmd);
     }
 
     @Rule
@@ -249,4 +249,10 @@ public class TestCommandLineApp {
         String input = "1.0,abc,3.8";
         assertThrows(ParseException.class, () -> app.parseFloatList(input));
     }
+
+    @Test
+    public void testSingleFileProcessing() throws ParseException {
+        app.extractTables(cmd);
+        assertTrue(stringWriter.toString().contains("Expected output content"));
+    }    
 }
