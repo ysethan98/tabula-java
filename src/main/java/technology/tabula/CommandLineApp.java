@@ -7,6 +7,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.Arrays;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -286,17 +288,15 @@ public class CommandLineApp {
     // utilities, etc.
 
     public static List<Float> parseFloatList(String option) throws ParseException {
-        String[] f = option.split(",");
-        List<Float> rv = new ArrayList<>();
         try {
-            for (final String element : f) {
-                rv.add(Float.parseFloat(element));
-            }
-            return rv;
+            return Arrays.stream(option.split(","))
+                         .map(Float::parseFloat)
+                         .collect(Collectors.toList());
         } catch (NumberFormatException e) {
-            throw new ParseException("Wrong number syntax");
+            throw new ParseException("Invalid number format in: " + option);
         }
     }
+    
 
     private static void printHelp() {
         HelpFormatter formatter = new HelpFormatter();
