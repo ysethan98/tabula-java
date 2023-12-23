@@ -81,18 +81,26 @@ public class CommandLineApp {
 
     public void extractTables(CommandLine line) throws ParseException {
         if (line.hasOption('b')) {
-            if (line.getArgs().length != 0) {
-                throw new ParseException("Filename specified with batch\nTry --help for help");
-            }
-
-            File pdfDirectory = new File(line.getOptionValue('b'));
-            if (!pdfDirectory.isDirectory()) {
-                throw new ParseException("Directory does not exist or is not a directory");
-            }
-            extractDirectoryTables(line, pdfDirectory);
-            return;
+            handleBatchProcessing(line);
+        } else {
+            handleSingleFileProcessing(line);
+        }
+    }
+    
+    private void handleBatchProcessing(CommandLine line) throws ParseException {
+        if (line.getArgs().length != 0) {
+            throw new ParseException("Filename specified with batch\nTry --help for help");
         }
 
+        File pdfDirectory = new File(line.getOptionValue('b'));
+        if (!pdfDirectory.isDirectory()) {
+            throw new ParseException("Directory does not exist or is not a directory");
+        }
+
+        extractDirectoryTables(line, pdfDirectory);
+    }
+    
+    private void handleSingleFileProcessing(CommandLine line) throws ParseException {
         if (line.getArgs().length != 1) {
             throw new ParseException("Need exactly one filename\nTry --help for help");
         }
@@ -101,6 +109,7 @@ public class CommandLineApp {
         if (!pdfFile.exists()) {
             throw new ParseException("File does not exist");
         }
+
         extractFileTables(line, pdfFile);
     }
 
