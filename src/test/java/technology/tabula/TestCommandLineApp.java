@@ -5,6 +5,8 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.List;
+import java.util.Arrays;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -13,8 +15,27 @@ import org.apache.commons.cli.ParseException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
+import static org.mockito.Mockito.mock;
+import org.junit.Before;
 
 public class TestCommandLineApp {
+
+    private CommandLineApp app;
+    private Appendable mockOutput;
+    private CommandLine mockCmd;
+
+    @Before
+    public void setUp() {
+        mockOutput = mock(Appendable.class);
+        mockCmd = mock(CommandLine.class);
+        try {
+            app = new CommandLineApp(mockOutput, mockCmd);
+        } catch (ParseException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -216,4 +237,16 @@ public class TestCommandLineApp {
         assertEquals(expectedJson, resultJson);
     }
 
+    @Test
+    public void testParseFloatListValid() throws ParseException {
+        String input = "1.0,2.5,3.3";
+        List<Float> expected = Arrays.asList(1.0f, 2.5f, 3.3f);
+        assertEquals(expected, app.parseFloatList(input));
+    }
+    
+    @Test
+    void testParseFloatListInvalid() {
+        String input = "1.0,abc,3.8";
+        assertThrows(ParseException.class, () -> app.parseFloatList(input));
+    }
 }
