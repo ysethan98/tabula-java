@@ -42,6 +42,7 @@ public class CommandLineApp {
     private OutputFormat outputFormat;
     private String password;
     private TableExtractor tableExtractor;
+    private DebugOutput debugOutput;
 
     public CommandLineApp(Appendable defaultOutput, CommandLine line) throws ParseException {
         this.defaultOutput = defaultOutput;
@@ -49,6 +50,7 @@ public class CommandLineApp {
         this.pages = whichPages(line);
         this.outputFormat = whichOutputFormat(line);
         this.tableExtractor = createExtractor(line);
+        this.debugOutput = new DebugOutput(true);
 
         if (line.hasOption('s')) {
             this.password = line.getOptionValue('s');
@@ -315,7 +317,7 @@ public class CommandLineApp {
 
     // utilities, etc.
 
-    public List<Float> parseFloatList(String option) throws ParseException {
+    public static List<Float> parseFloatList(String option) throws ParseException {
         try {
             return Arrays.stream(option.split(","))
                          .map(Float::parseFloat)
@@ -428,17 +430,4 @@ public class CommandLineApp {
         return pdfFile.getPath().replaceFirst("(\\.pdf|)$", extension);
     }
 
-    private class DebugOutput {
-        private boolean debugEnabled;
-
-        public DebugOutput(boolean debug) {
-            this.debugEnabled = debug;
-        }
-
-        public void debug(String msg) {
-            if (this.debugEnabled) {
-                System.err.println(msg);
-            }
-        }
-    }
 }
