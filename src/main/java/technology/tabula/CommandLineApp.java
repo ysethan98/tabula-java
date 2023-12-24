@@ -111,7 +111,7 @@ public class CommandLineApp {
         }
     }
 
-    private File getDirectoryFromCommandLine(CommandLine line) throws ParseException{
+    public File getDirectoryFromCommandLine(CommandLine line) throws ParseException{
         File pdfDirectory = new File(line.getOptionValue('b'));
         if (!pdfDirectory.isDirectory()) {
             throw new ParseException("Directory does not exist or is not a directory");
@@ -177,47 +177,56 @@ public class CommandLineApp {
     }
 
     private void extractFile(File pdfFile, Appendable outFile) throws ParseException {
-        PDDocument pdfDocument = null;
-        try {
-            pdfDocument = this.password == null ? PDDocument.load(pdfFile) : PDDocument.load(pdfFile, this.password);
+        try (PDDocument pdfDocument = loadPdfDocument(pdfFile)){
             PageIterator pageIterator = getPageIterator(pdfDocument);
-            List<Table> tables = new ArrayList<>();
-
-            while (pageIterator.hasNext()) {
-                Page page = pageIterator.next();
-
-                if (tableExtractor.verticalRulingPositions != null) {
-                    for (Float verticalRulingPosition : tableExtractor.verticalRulingPositions) {
-                        page.addRuling(new Ruling(0, verticalRulingPosition, 0.0f, (float) page.getHeight()));
-                    }
-                }
-
-                if (pageAreas != null) {
-                    for (Pair<Integer, Rectangle> areaPair : pageAreas) {
-                        Rectangle area = areaPair.getRight();
-                        if (areaPair.getLeft() == RELATIVE_AREA_CALCULATION_MODE) {
-                            area = new Rectangle((float) (area.getTop() / 100 * page.getHeight()),
-                                    (float) (area.getLeft() / 100 * page.getWidth()), (float) (area.getWidth() / 100 * page.getWidth()),
-                                    (float) (area.getHeight() / 100 * page.getHeight()));
-                        }
-                        tables.addAll(tableExtractor.extractTables(page.getArea(area)));
-                    }
-                } else {
-                    tables.addAll(tableExtractor.extractTables(page));
-                }
-            }
+            List<Table> tables = processPages(pageIterator);
             writeTables(tables, outFile);
         } catch (IOException e) {
             throw new ParseException(e.getMessage());
-        } finally {
-            try {
-                if (pdfDocument != null) {
-                    pdfDocument.close();
-                }
-            } catch (IOException e) {
-                System.out.println("Error in closing pdf document" + e);
+        } 
+    }
+
+    private PDDocument loadPdfDocument(File pdfFile) throws IOException {
+        return this.password == null ? PDDocument.load(pdfFile) : PDDocument.load(pdfFile, this.password);
+    }
+
+    private List<Table> processPages(PageIterator pageIterator) {
+        List<Table> tables = new ArrayList<>();
+        while (pageIterator.hasNext()) {
+            Page page = pageIterator.next();
+            applyVerticalRulings(page);
+            tables.addAll(extractTablesFromPage(page));
+        }
+        return tables;
+    }
+
+    private void applyVerticalRulings(Page page) {
+        if (tableExtractor.verticalRulingPositions != null) {
+            for (Float verticalRulingPosition : tableExtractor.verticalRulingPositions) {
+                page.addRuling(new Ruling(0, verticalRulingPosition, 0.0f, (float) page.getHeight()));
             }
         }
+    }
+
+    private List<Table> extractTablesFromPage(Page page) {
+        if (pageAreas != null) {
+            return pageAreas.stream().map(areaPair -> adjustAreaBasedOnMode(areaPair, page)).flatMap(area -> tableExtractor.extractTables(page.getArea(area)).stream()).collect(Collectors.toList());
+        } else {
+            return tableExtractor.extractTables(page);
+        }    
+    }
+
+    private Rectangle adjustAreaBasedOnMode(Pair<Integer, Rectangle> areaPair, Page page) {
+        Rectangle area = areaPair.getRight();
+        if (areaPair.getLeft() == RELATIVE_AREA_CALCULATION_MODE) {
+            return new Rectangle(
+                (float) (area.getTop() / 100 * page.getHeight()),
+                (float) (area.getLeft() / 100 * page.getWidth()),
+                (float) (area.getWidth() / 100 * page.getWidth()),
+                (float) (area.getHeight() / 100 * page.getHeight())
+            );
+        }
+        return area;
     }
 
     private PageIterator getPageIterator(PDDocument pdfDocument) throws IOException {
