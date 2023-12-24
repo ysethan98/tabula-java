@@ -1,6 +1,12 @@
 package technology.tabula;
 
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
@@ -254,5 +260,15 @@ public class TestCommandLineApp {
     public void testSingleFileProcessing() throws ParseException {
         app.extractTables(cmd);
         assertTrue(stringWriter.toString().contains("Expected output content"));
-    }    
+    }
+    
+    @Test
+    public void testBatchFileProcessing() throws ParseException {
+        when(cmd.hasOption("b")).thenReturn(true);
+        File mockedDirectory = mock(File.class);
+        when(mockedDirectory.isDirectory()).thenReturn(true);
+        doReturn(mockedDirectory).when(app).getDirectoryFromCommandLine(cmd);
+        app.extractTables(cmd);
+        verify(app, times(1)).extractDirectoryTables(any(CommandLine.class), any(File.class));
+    }
 }
