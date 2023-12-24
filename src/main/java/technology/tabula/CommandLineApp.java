@@ -45,17 +45,17 @@ public class CommandLineApp {
 
     public CommandLineApp(Appendable defaultOutput, CommandLine line) throws ParseException {
         this.defaultOutput = defaultOutput;
-        this.pageAreas = CommandLineApp.whichAreas(line);
-        this.pages = CommandLineApp.whichPages(line);
-        this.outputFormat = CommandLineApp.whichOutputFormat(line);
-        this.tableExtractor = CommandLineApp.createExtractor(line);
+        this.pageAreas = whichAreas(line);
+        this.pages = whichPages(line);
+        this.outputFormat = whichOutputFormat(line);
+        this.tableExtractor = createExtractor(line);
 
         if (line.hasOption('s')) {
             this.password = line.getOptionValue('s');
         }
     }
 
-    public static void main(String[] args) {
+    public void main(String[] args) {
         CommandLineParser parser = new DefaultParser();
         try {
             // parse the command line arguments
@@ -238,7 +238,7 @@ public class CommandLineApp {
 
     // CommandLine parsing methods
 
-    private static OutputFormat whichOutputFormat(CommandLine line) throws ParseException {
+    private OutputFormat whichOutputFormat(CommandLine line) throws ParseException {
         if (!line.hasOption('f')) {
             return OutputFormat.CSV;
         }
@@ -253,7 +253,7 @@ public class CommandLineApp {
         }
     }
 
-    private static List<Pair<Integer, Rectangle>> whichAreas(CommandLine line) throws ParseException {
+    private List<Pair<Integer, Rectangle>> whichAreas(CommandLine line) throws ParseException {
         if (!line.hasOption('a')) {
             return null;
         }
@@ -277,7 +277,7 @@ public class CommandLineApp {
         return areaList;
     }
 
-    private static List<Integer> whichPages(CommandLine line) throws ParseException {
+    private List<Integer> whichPages(CommandLine line) throws ParseException {
         String pagesOption = line.hasOption('p') ? line.getOptionValue('p') : "1";
         return Utils.parsePagesOption(pagesOption);
     }
@@ -295,7 +295,7 @@ public class CommandLineApp {
         return ExtractionMethod.DECIDE;
     }
 
-    private static TableExtractor createExtractor(CommandLine line) throws ParseException {
+    private TableExtractor createExtractor(CommandLine line) throws ParseException {
         TableExtractor extractor = new TableExtractor();
         extractor.setGuess(line.hasOption('g'));
         extractor.setMethod(CommandLineApp.whichExtractionMethod(line));
@@ -315,7 +315,7 @@ public class CommandLineApp {
 
     // utilities, etc.
 
-    public static List<Float> parseFloatList(String option) throws ParseException {
+    public List<Float> parseFloatList(String option) throws ParseException {
         try {
             return Arrays.stream(option.split(","))
                          .map(Float::parseFloat)
@@ -326,12 +326,12 @@ public class CommandLineApp {
     }
     
 
-    private static void printHelp() {
+    private void printHelp() {
         HelpFormatter formatter = new HelpFormatter();
         formatter.printHelp("tabula", BANNER, buildOptions(), "", true);
     }
 
-    public static Options buildOptions() {
+    public Options buildOptions() {
         Options o = new Options();
 
         o.addOption("v", "version", false, "Print version and exit.");
