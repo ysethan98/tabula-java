@@ -129,21 +129,16 @@ public class CommandLineApp {
         return pdfFile;
     }
 
-    public void extractDirectoryTables(CommandLine line, File pdfDirectory) throws ParseException {
-        File[] pdfs = pdfDirectory.listFiles(new FilenameFilter() {
-            public boolean accept(File dir, String name) {
-                return name.endsWith(".pdf");
-            }
-        });
-
+    public void extractDirectoryTables(CommandLine line, File pdfDirectory) {
+        File[] pdfs = pdfDirectory.listFiles((dir, name) -> name.endsWith(".pdf"));
+    
         for (File pdfFile : pdfs) {
-          File outputFile = new File(getOutputFilename(pdfFile));
-          try {
-            extractFileInto(pdfFile, outputFile);
-          } catch (ParseException e) {
-            System.err.println("Caught exception while processing file: " + pdfFile.toString());
-            throw e;
-          }
+            File outputFile = new File(getOutputFilename(pdfFile));
+            try {
+                extractFileInto(pdfFile, outputFile);
+            } catch (Exception e) {
+                handleException("Error processing file: " + pdfFile.getPath(), e);
+            }
         }
     }
 
@@ -157,35 +152,32 @@ public class CommandLineApp {
         extractFileInto(pdfFile, outputFile);
     }
 
-    public void extractFileInto(File pdfFile, File outputFile) throws ParseException {
-        BufferedWriter bufferedWriter = null;
-        try {
-            FileWriter fileWriter = new FileWriter(outputFile.getAbsoluteFile());
-            bufferedWriter = new BufferedWriter(fileWriter);
-
+    public void extractFileInto(File pdfFile, File outputFile) {
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(outputFile))) {
             outputFile.createNewFile();
             extractFile(pdfFile, bufferedWriter);
         } catch (IOException e) {
-            throw new ParseException("Cannot create file " + outputFile);
-        } finally {
-            if (bufferedWriter != null) {
-                try {
-                    bufferedWriter.close();
-                } catch (IOException e) {
-                    System.out.println("Error in closing the BufferedWriter" + e);
-                }
-            }
+            handleException("Cannot create or write to file: " + outputFile, e);
         }
     }
 
-    private void extractFile(File pdfFile, Appendable outFile) throws ParseException {
+    private void extractFile(File pdfFile, Appendable outFile) {
         try (PDDocument pdfDocument = loadPdfDocument(pdfFile)){
-            PageIterator pageIterator = getPageIterator(pdfDocument);
-            List<Table> tables = processPages(pageIterator);
-            writeTables(tables, outFile);
+            processPdfDocument(pdfDocument, outFile);
         } catch (IOException e) {
-            throw new ParseException(e.getMessage());
+            handleException("Error processing file: " + pdfFile.getPath(), e);
         } 
+    }
+
+    private static void handleException(String message, Exception e) {
+        System.err.println(message);
+        e.printStackTrace();
+    }
+
+    private void processPdfDocument(PDDocument pdfDocument, Appendable outFile) throws IOException {
+        PageIterator pageIterator = getPageIterator(pdfDocument);
+        List<Table> tables = processPages(pageIterator);
+        writeTables(tables, outFile);
     }
 
     private PDDocument loadPdfDocument(File pdfFile) throws IOException {
