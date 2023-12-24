@@ -88,29 +88,43 @@ public class CommandLineApp {
     }
     
     private void handleBatchProcessing(CommandLine line) throws ParseException {
+        checkBatchModeArguments(line);
+        File pdfDirectory = getDirectoryFromCommandLine(line);
+        extractDirectoryTables(line, pdfDirectory);
+    }
+
+    private void checkBatchModeArguments(CommandLine line) throws ParseException{
         if (line.getArgs().length != 0) {
             throw new ParseException("Filename specified with batch\nTry --help for help");
         }
+    }
+    
+    private void handleSingleFileProcessing(CommandLine line) throws ParseException {
+        checkSingleFileModeArguments(line);
+        File pdfFile = getFileFromCommandLine(line);
+        extractFileTables(line, pdfFile);
+    }
 
+    private void checkSingleFileModeArguments(CommandLine line) throws ParseException{
+        if (line.getArgs().length != 1) {
+            throw new ParseException("Need exactly one filename\nTry --help for help");
+        }
+    }
+
+    private File getDirectoryFromCommandLine(CommandLine line) throws ParseException{
         File pdfDirectory = new File(line.getOptionValue('b'));
         if (!pdfDirectory.isDirectory()) {
             throw new ParseException("Directory does not exist or is not a directory");
         }
-
-        extractDirectoryTables(line, pdfDirectory);
+        return pdfDirectory;
     }
-    
-    private void handleSingleFileProcessing(CommandLine line) throws ParseException {
-        if (line.getArgs().length != 1) {
-            throw new ParseException("Need exactly one filename\nTry --help for help");
-        }
 
+    private File getFileFromCommandLine(CommandLine line) throws ParseException{
         File pdfFile = new File(line.getArgs()[0]);
         if (!pdfFile.exists()) {
             throw new ParseException("File does not exist");
         }
-
-        extractFileTables(line, pdfFile);
+        return pdfFile;
     }
 
     public void extractDirectoryTables(CommandLine line, File pdfDirectory) throws ParseException {
