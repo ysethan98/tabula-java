@@ -24,6 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.Before;
+import technology.tabula.CommandLineApp;
 
 public class TestCommandLineApp {
 
@@ -34,7 +35,8 @@ public class TestCommandLineApp {
     @Before
     public void setUp() throws ParseException {
         stringWriter = new StringWriter();
-        Options options = CommandLineApp.buildOptions();
+        CommandLineApp tempApp = new CommandLineApp(stringWriter, null);
+        Options options = tempApp.buildOptions();
         CommandLineParser parser = new DefaultParser();
 
         String[] args = new String[]{"-f", "CSV", "path/to/singlefile.pdf"};
@@ -48,7 +50,8 @@ public class TestCommandLineApp {
 
     private String csvFromCommandLineArgs(String[] args) throws ParseException {
         CommandLineParser parser = new DefaultParser();
-        CommandLine cmd = parser.parse(CommandLineApp.buildOptions(), args);
+        CommandLineApp tempApp = new CommandLineApp(null, null);
+        CommandLine cmd = parser.parse(tempApp.buildOptions(), args);
 
         StringBuilder stringBuilder = new StringBuilder();
         new CommandLineApp(stringBuilder, cmd).extractTables(cmd);
