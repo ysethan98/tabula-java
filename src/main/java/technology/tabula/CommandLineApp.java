@@ -132,7 +132,7 @@ public class CommandLineApp {
             try {
                 extractFileInto(pdfFile, outputFile);
             } catch (Exception e) {
-                handleException("Error processing file: " + pdfFile.getPath(), e);
+                ExceptionHandler.handleException("Error processing file: " + pdfFile.getPath(), e);
             }
         }
     }
@@ -152,7 +152,7 @@ public class CommandLineApp {
             outputFile.createNewFile();
             extractFile(pdfFile, bufferedWriter);
         } catch (IOException e) {
-            handleException("Cannot create or write to file: " + outputFile, e);
+            ExceptionHandler.handleException("Cannot create or write to file: " + outputFile, e);
         }
     }
 
@@ -160,13 +160,8 @@ public class CommandLineApp {
         try (PDDocument pdfDocument = loadPdfDocument(pdfFile)){
             processPdfDocument(pdfDocument, outFile);
         } catch (IOException e) {
-            handleException("Error processing file: " + pdfFile.getPath(), e);
+            ExceptionHandler.handleException("Error processing file: " + pdfFile.getPath(), e);
         } 
-    }
-
-    private static void handleException(String message, Exception e) {
-        System.err.println(message);
-        e.printStackTrace();
     }
 
     private void processPdfDocument(PDDocument pdfDocument, Appendable outFile) throws IOException {
