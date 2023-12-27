@@ -32,11 +32,11 @@ public class TestCommandLineApp {
     private StringWriter stringWriter;
     private CommandLine cmd;
 
+
     @Before
     public void setUp() throws ParseException {
         stringWriter = new StringWriter();
-        CommandLineApp tempApp = new CommandLineApp(stringWriter, null);
-        Options options = tempApp.buildOptions();
+        Options options = CommandLineOptions.buildOptions();
         CommandLineParser parser = new DefaultParser();
 
         String[] args = new String[]{"-f", "CSV", "path/to/singlefile.pdf"};
@@ -50,8 +50,7 @@ public class TestCommandLineApp {
 
     private String csvFromCommandLineArgs(String[] args) throws ParseException {
         CommandLineParser parser = new DefaultParser();
-        CommandLineApp tempApp = new CommandLineApp(null, null);
-        CommandLine cmd = parser.parse(tempApp.buildOptions(), args);
+        CommandLine cmd = parser.parse(CommandLineOptions.buildOptions(), args);
 
         StringBuilder stringBuilder = new StringBuilder();
         new CommandLineApp(stringBuilder, cmd).extractTables(cmd);
